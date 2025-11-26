@@ -1,0 +1,26 @@
+================================================================================
+HYPERPARAMETER CONFIGURATION ANALYSIS
+================================================================================
+
+Sequence Length: 256
+
+Configuration             Window   Dilation   Sparsity   Est. Speedup   
+--------------------------------------------------------------------------------
+Current (conservative)    128      4              19.1%           2.9%
+Dense long-range          128      2              12.8%           1.9%
+Balanced                  96       4              29.7%           4.5%
+Balanced aggressive       96       6              32.9%           4.9%
+Aggressive                80       4              35.8%           5.4%
+Aggressive sparse         80       6              39.8%           6.0%
+Maximum local             64       4              42.6%           6.4%
+Maximum sparsity          64       8              49.6%           7.4%
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+For Maximum Speed: window_size=64, dilation=8
+For Balanced: window_size=96, dilation=4
+For Conservative: window_size=128, dilation=2
+
+Recommended Next Test: window_size=96, dilation=4
