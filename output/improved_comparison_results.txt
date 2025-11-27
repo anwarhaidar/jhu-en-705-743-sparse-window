@@ -1,0 +1,11 @@
+
+Comparison Results (10 runs):
+Total experiment time: 18263.15s (304.39 min)
+Average time per run: 1826.30s (30.44 min)
+
+Number of runs: 10
+Order randomized: True
+
+Training Time: 937.54 ± 3.01s → 878.77 ± 4.02s (+6.27%)
+Peak Memory: 1465.09 ± 1.22 MB → 1398.49 ± 0.00 MB (+4.55%)
+Avg Loss: 3.3318 ± 0.0147 → 3.3479 ± 0.0185 (+0.48%)
