@@ -18,7 +18,6 @@ Usage:
 import numpy as np
 import json
 
-from create_plots_improved import create_all_plots
 
 def save_metrics(baseline_metrics, window_metrics, filepath='experiment_results.npz'):
     """
@@ -28,10 +27,7 @@ def save_metrics(baseline_metrics, window_metrics, filepath='experiment_results.
         baseline_metrics: List of dicts with baseline model results
         window_metrics: List of dicts with window model results
         filepath: Path to save the data (default: 'experiment_results.npz')
-    
-    Example:
-        >>> save_metrics(baseline_metrics, window_metrics, 'my_results.npz')
-        Saved metrics to my_results.npz (10 baseline runs, 10 window runs)
+
     """
     # Convert list of dicts to dict of lists for easier numpy storage
     baseline_data = {
@@ -123,11 +119,7 @@ def load_metrics(filepath='experiment_results.npz'):
     Returns:
         baseline_metrics: List of dicts with baseline model results
         window_metrics: List of dicts with window model results
-    
-    Example:
-        >>> baseline_metrics, window_metrics = load_metrics('my_results.npz')
-        Loaded metrics from my_results.npz (10 baseline runs, 10 window runs)
-        >>> create_all_plots(baseline_metrics, window_metrics)
+
     """
     data = np.load(filepath, allow_pickle=True)
     
@@ -178,10 +170,8 @@ def print_metrics_summary(baseline_metrics, window_metrics):
         baseline_metrics: List of dicts with baseline model results
         window_metrics: List of dicts with window model results
     """
-    print("\n" + "="*80)
-    print("METRICS SUMMARY")
-    print("="*80)
-    
+    print("\nMETRICS SUMMARY")
+
     n_runs = len(baseline_metrics)
     
     baseline_times = [m['training_time'] for m in baseline_metrics]
@@ -214,22 +204,5 @@ def print_metrics_summary(baseline_metrics, window_metrics):
     
     loss_diff = (np.mean(window_losses) - np.mean(baseline_losses)) / np.mean(baseline_losses) * 100
     print(f"  Difference: {loss_diff:+.2f}%")
-    
-    print("\n" + "="*80)
 
 
-if __name__ == "__main__":
-    print(__doc__)
-    print("\nExample usage:")
-    print("  # Save metrics after experiment")
-    print("  save_metrics(baseline_metrics, window_metrics, 'my_experiment.npz')")
-    print()
-    print("  # Load metrics later")
-    print("  baseline_metrics, window_metrics = load_metrics('my_experiment.npz')")
-    print()
-    print("  # Print summary")
-    print("  print_metrics_summary(baseline_metrics, window_metrics)")
-    print()
-    print("  # Recreate plots")
-    print("  from create_plots_improved import create_all_plots")
-    print("  create_all_plots(baseline_metrics, window_metrics)")

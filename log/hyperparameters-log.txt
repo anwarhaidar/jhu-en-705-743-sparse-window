@@ -1,0 +1,46 @@
+/home/anwar/Desktop/chatGPT/.venv/bin/python /home/anwar/Desktop/chatGPT/analyze_hyperparameters.py 
+
+HYPERPARAMETER CONFIGURATION ANALYSIS
+
+Sequence Length: 256
+Analyzing different window_size and dilation combinations...
+
+Configuration             Window   Dilation   Sparsity   Est. Speedup    Quality Risk   
+------------------------------------------------------------------------------------------
+Current (conservative)    128      4              19.1%           2.9%        Very Low
+Dense long-range          128      2              12.8%           1.9%        Very Low
+Balanced                  96       4              29.7%           4.5%             Low
+Balanced aggressive       96       6              32.9%           4.9%             Low
+Aggressive                80       4              35.8%           5.4%          Medium
+Aggressive sparse         80       6              39.8%           6.0%          Medium
+Maximum local             64       4              42.6%           6.4%          Medium
+Maximum sparsity          64       8              49.6%           7.4%          Medium
+
+Recommendations:
+
+For Maximum Speed (accept 3-5% quality loss):
+   window_size=64, dilation=8
+
+For Balanced Performance (1-3% quality loss):
+   window_size=96, dilation=4
+
+For Conservative Approach (<1% quality loss):
+   window_size=128, dilation=2
+
+Recommended Next Test:
+   window_size=96, dilation=4
+   Expected: 8-12% speedup with minimal quality impact
+
+Generating comparison visualization...
+Saved plots/hyperparameter_comparison.png
+Saved plots/sparsity_speedup_tradeoff.png
+Saved output/hyperparameter_analysis.txt
+
+Analysis Complete!
+
+Generated files:
+  - plots/hyperparameter_comparison.png (attention patterns)
+  - plots/sparsity_speedup_tradeoff.png (performance curve)
+  - output/hyperparameter_analysis.txt (detailed report)
+
+Process finished with exit code 0

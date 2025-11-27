@@ -5,8 +5,10 @@ Helps you find the optimal window_size and dilation for your use case.
 
 import os
 import time
-from gpt_win import GPTWindowModel
+import torch
 import matplotlib.pyplot as plt
+
+from gpt_win import GPTWindowModel
 
 def analyze_sparsity_pattern(window_size, dilation, max_seq_len=256):
     """Analyze the sparsity pattern of a configuration."""
@@ -17,10 +19,9 @@ def analyze_sparsity_pattern(window_size, dilation, max_seq_len=256):
     )
 
     # Get mask from first transformer block
-    # noinspection PyProtectedMember
-    first_layer = model.layers[0]  # type: ignore
-    mask = first_layer.mha.get_attention_mask()
-    # mask = first_layer.mha._cached_mask  # Access cached mask
+    first_layer = model.layers[0]
+    device = torch.device("cpu")   # Use CPU for analysis
+    mask = first_layer.mha.get_attention_mask(max_seq_len, device).squeeze(0)  # Remove batch dim
 
     # Calculate statistics
     attended_positions = mask.sum().item()
@@ -51,9 +52,7 @@ def compare_configurations(seq_len=256):
     os.makedirs('plots', exist_ok=True)
     os.makedirs('output', exist_ok=True)
 
-    print("="*80)
-    print("HYPERPARAMETER CONFIGURATION ANALYSIS")
-    print("="*80)
+    print("\nHYPERPARAMETER CONFIGURATION ANALYSIS")
     print(f"\nSequence Length: {seq_len}")
     print(f"Analyzing different window_size and dilation combinations...\n")
 
@@ -74,7 +73,7 @@ def compare_configurations(seq_len=256):
 
     print(f"{'Configuration':<25} {'Window':<8} {'Dilation':<10} {'Sparsity':<10} "
           f"{'Est. Speedup':<15} {'Quality Risk':<15}")
-    print("-"*100)
+    print("-"*90)
 
     for window_size, dilation, description in configs:
         stats = analyze_sparsity_pattern(window_size, dilation, seq_len)
@@ -93,9 +92,7 @@ def compare_configurations(seq_len=256):
         print(f"{description:<25} {window_size:<8} {dilation:<10} {stats['sparsity']:>8.1f}% "
               f"{stats['estimated_speedup']:>13.1f}% {risk:>15}")
 
-    print("\n" + "="*80)
-    print("RECOMMENDATIONS")
-    print("="*80)
+    print("\nRecommendations:")
 
     print("\nFor Maximum Speed (accept 3-5% quality loss):")
     print("   window_size=64, dilation=8")
@@ -111,8 +108,7 @@ def compare_configurations(seq_len=256):
     print("   Expected: 8-12% speedup with minimal quality impact")
 
     # Visualize attention patterns
-    print("\n" + "="*80)
-    print("Generating comparison visualization...")
+    print("\nGenerating comparison visualization...")
 
     fig, axes = plt.subplots(2, 4, figsize=(20, 10))
     axes = axes.flatten()
@@ -133,7 +129,7 @@ def compare_configurations(seq_len=256):
         plt.colorbar(im, ax=ax, fraction=0.046)
 
     plt.tight_layout()
-    plt.savefig('plots/hyperparameter_comparison.png', dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join('plots','hyperparameter_comparison.png'), dpi=300, bbox_inches='tight')
     print("Saved plots/hyperparameter_comparison.png")
 
     # Create sparsity vs speedup plot
@@ -161,28 +157,23 @@ def compare_configurations(seq_len=256):
     ax.legend()
 
     plt.tight_layout()
-    plt.savefig('plots/sparsity_speedup_tradeoff.png', dpi=150, bbox_inches='tight')
+    plt.savefig(os.path.join('plots', 'sparsity_speedup_tradeoff.png'), dpi=300, bbox_inches='tight')
     print("Saved plots/sparsity_speedup_tradeoff.png")
     plt.close('all')
 
     # Save detailed report
     with open(os.path.join('output','hyperparameter_analysis.txt'), 'w') as f:
-        f.write("="*80 + "\n")
-        f.write("HYPERPARAMETER CONFIGURATION ANALYSIS\n")
-        f.write("="*80 + "\n\n")
+        f.write("Hyperparameter Configuration Analysis:\n\n")
         f.write(f"Sequence Length: {seq_len}\n\n")
 
         f.write(f"{'Configuration':<25} {'Window':<8} {'Dilation':<10} {'Sparsity':<10} "
                 f"{'Est. Speedup':<15}\n")
-        f.write("-"*80 + "\n")
 
         for description, stats in results:
             f.write(f"{description:<25} {stats['window_size']:<8} {stats['dilation']:<10} "
                    f"{stats['sparsity']:>8.1f}% {stats['estimated_speedup']:>13.1f}%\n")
 
-        f.write("\n" + "="*80 + "\n")
-        f.write("RECOMMENDATIONS\n")
-        f.write("="*80 + "\n\n")
+        f.write("\nRecommendations:\n\n")
         f.write("For Maximum Speed: window_size=64, dilation=8\n")
         f.write("For Balanced: window_size=96, dilation=4\n")
         f.write("For Conservative: window_size=128, dilation=2\n")
@@ -190,9 +181,7 @@ def compare_configurations(seq_len=256):
 
     print("Saved output/hyperparameter_analysis.txt")
 
-    print("\n" + "="*80)
-    print("ANALYSIS COMPLETE!")
-    print("="*80)
+    print("\nAnalysis Complete!")
     print("\nGenerated files:")
     print("  - plots/hyperparameter_comparison.png (attention patterns)")
     print("  - plots/sparsity_speedup_tradeoff.png (performance curve)")
@@ -209,9 +198,7 @@ def test_specific_config(window_size, dilation, seq_len=256):
 
     # Validate parameters
     if dilation >= window_size:
-        print("="*80)
-        print("WARNING: Questionable Configuration!")
-        print("="*80)
+        print("WARNING: Questionable Configuration!\n")
         print(f"\nDilation ({dilation}) is >= window_size ({window_size}).")
         print("This is unusual and likely not optimal.")
         print("\nTypical values:")
@@ -221,9 +208,7 @@ def test_specific_config(window_size, dilation, seq_len=256):
         print("\nProceeding with analysis anyway...\n")
         time.sleep(2)
 
-    print("="*80)
-    print(f"TESTING CONFIG: window_size={window_size}, dilation={dilation}")
-    print("="*80)
+    print(f"Testing Config=: window_size={window_size}, dilation={dilation}")
 
     stats = analyze_sparsity_pattern(window_size, dilation, seq_len)
 
@@ -284,8 +269,9 @@ def test_specific_config(window_size, dilation, seq_len=256):
     ax.legend()
 
     plt.tight_layout()
-    output_file = f'plots/config_w{window_size}_d{dilation}.png'
-    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+    output_file = f'config_w{window_size}_d{dilation}.png'
+    output_file = os.path.join('plots', output_file)
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
     print(f"\nSaved {output_file}")
     plt.close('all')
 

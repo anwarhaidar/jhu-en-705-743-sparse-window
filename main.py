@@ -10,7 +10,7 @@ statistical analysis and visualization.
 Author: Anwar Sleiman Haidar
 Course: EN.705.743 - ChatGPT from Scratch
 Institution: Johns Hopkins University
-Date: October 13, 2025
+Date: November 30, 2025
 
 Usage:
     python main.py
@@ -23,17 +23,16 @@ import os
 import sys
 
 # Import the comparison framework
-from compare_models_10runs import compare_models_improved
-from create_plots_improved import create_all_plots
+from compare_models import compare_models_runs
+from create_model_plots import create_all_plots
 
 def check_dependencies():
     """
     Check if all required dependencies are available.
     """
-    print("=" * 80)
-    print("DEPENDENCY CHECK")
-    print("=" * 80)
-    
+
+    print("\nDependency check...\n")
+
     try:
         import matplotlib
         print("✓ matplotlib available")
@@ -67,7 +66,7 @@ def check_dependencies():
         print(f"✓ CUDA available: {torch.cuda.get_device_name(0)}")
         print(f"  GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} GB")
     else:
-        print("\n❌ ERROR: CUDA not available!")
+        print("\nERROR: CUDA not available!")
         print("This experiment requires a GPU. CPU training would take 50+ hours.")
         print("\nPlease:")
         print("  1. Ensure you have an NVIDIA GPU")
@@ -83,10 +82,8 @@ def check_data_files():
     """
     Check if required data files are present.
     """
-    print("=" * 80)
-    print("DATA FILE CHECK")
-    print("=" * 80)
-    
+    print("Data file check...\n")
+
     required_files = [
         'training_data.npy',
         'gpt.py',
@@ -94,9 +91,11 @@ def check_data_files():
         'embedding.py',
         'linear.py',
         'train_model.py',
-        'compare_models_10runs.py',
-        'create_plots_improved.py',
-        'metrics_utils.py'
+        'compare_models.py',
+        'create_model_plots.py',
+        'metrics_utils.py',
+        'analyze_hyperparameters.py',
+        'training_data.npy',
     ]
     
     missing_files = []
@@ -119,17 +118,14 @@ def print_experiment_info():
     """
     Print information about the experiment setup.
     """
-    print("=" * 80)
-    print("EXPERIMENT CONFIGURATION")
-    print("=" * 80)
     print("""
 This experiment will:
 
 1. Run 10 randomized comparisons between baseline and sparse attention GPT
-2. Train each model on Shakespeare text data
+2. Train each model on wiki-13 text data
 3. Track training time, memory usage, and model quality
 4. Perform statistical analysis (t-tests, Cohen's d)
-5. Generate 8 publication-quality plots
+5. Generate 10 publication-quality plots
 6. Save all metrics for later analysis
 
 Model Configuration:
@@ -154,24 +150,22 @@ Statistical Validation:
   - t-tests for significance (α=0.05)
   - Cohen's d for effect size
     """)
-    print("=" * 80)
-    print()
+
 
 
 def main():
     """
     Main entry point for the experiment.
     """
-    print("\n" + "=" * 80)
-    print("SLIDING-WINDOW SPARSE ATTENTION IN GPT MODELS")
+
+    print("\nSLIDING-WINDOW SPARSE ATTENTION IN GPT MODELS")
     print("Practical Implementation and Empirical Evaluation")
-    print("=" * 80)
-    print()
-    print("Author: Anwar Sleiman Haidar")
-    print("Course: EN.705.743 - ChatGPT from Scratch")
-    print("Institution: Johns Hopkins University")
-    print("Date: November 18, 2025")
-    print()
+    # print()
+    # print("Author: Anwar Sleiman Haidar")
+    # print("Course: EN.705.743 - ChatGPT from Scratch")
+    # print("Institution: Johns Hopkins University")
+    # print("Date: November 30, 2025")
+
     
     # Check dependencies
     check_dependencies()
@@ -185,44 +179,37 @@ def main():
     # Confirm before starting
     print("WARNING: This experiment takes approximately 5 HOURS to complete!")
     print("Each run takes ~30 minutes, and we perform 10 runs for statistical validity.\n")
-    response = input("Ready to start experiment? This will take ~5 hours. [y/N]: ")
+    response = input("Ready to start experiment? [y/N]: ")
     if response.lower() not in ['y', 'yes']:
         print("\nExperiment cancelled.")
         print("Tip: You can run with fewer iterations by editing num_runs=10 in main.py (line 200)")
         sys.exit(0)
     
-    print("\n" + "=" * 80)
-    print("STARTING EXPERIMENT")
-    print("=" * 80)
+    print("\nStarting Runs...")
     print()
     
     try:
         # Run the main comparison experiment
         # This performs 10 runs with randomized order
-        baseline_metrics, window_metrics = compare_models_improved(
+        baseline_metrics, window_metrics = compare_models_runs(
             num_runs=10,          # Number of iterations
             randomize_order=True  # Randomize baseline/window order
         )
 
         create_all_plots(baseline_metrics, window_metrics)
 
-        print("\n" + "=" * 80)
-        print("EXPERIMENT COMPLETED SUCCESSFULLY!")
-        print("=" * 80)
+        print("\nRuns completed successfully!\n")
         print()
         print("Generated outputs:")
         print("  ✓ output/experiment_results.npz - Saved metrics")
         print("  ✓ output/experiment_results.json - Human-readable metrics")
-        print("  ✓ plots/ - 8 visualization plots")
+        print("  ✓ plots/ - 10 visualization plots")
         print("  ✓ output/improved_comparison_results.txt - Text summary")
         print()
         print("Next steps:")
         print("  1. Check plots/ directory for visualizations")
-        print("  2. Review markdown/improved_comparison_results.txt for summary")
-        print("  3. Use recreate_plots.py to regenerate plots with different styling")
-        print()
-        print("To recreate plots anytime:")
-        print("  python recreate_plots.py")
+        print("  2. Review output/improved_comparison_results.txt for summary")
+        print("  3. Use create_model_plots.py to regenerate plots anytime")
         print()
         
     except KeyboardInterrupt:

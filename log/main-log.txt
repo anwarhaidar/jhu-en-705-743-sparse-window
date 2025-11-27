@@ -1,0 +1,573 @@
+/home/anwar/Desktop/chatGPT/.venv/bin/python /home/anwar/Desktop/chatGPT/main.py 
+
+SLIDING-WINDOW SPARSE ATTENTION IN GPT MODELS
+Practical Implementation and Empirical Evaluation
+
+Dependency check...
+
+✓ matplotlib available
+✓ seaborn available
+✓ scipy available
+✓ tqdm available
+✓ CUDA available: NVIDIA RTX PRO 6000 Blackwell Workstation Edition
+  GPU Memory: 101.94 GB
+
+Data file check...
+
+✓ training_data.npy
+✓ gpt.py
+✓ gpt_win.py
+✓ embedding.py
+✓ linear.py
+✓ train_model.py
+✓ compare_models.py
+✓ create_model_plots.py
+✓ metrics_utils.py
+✓ analyze_hyperparameters.py
+✓ training_data.npy
+
+
+This experiment will:
+
+1. Run 10 randomized comparisons between baseline and sparse attention GPT
+2. Train each model on wiki-13 text data
+3. Track training time, memory usage, and model quality
+4. Perform statistical analysis (t-tests, Cohen's d)
+5. Generate 10 publication-quality plots
+6. Save all metrics for later analysis
+
+Model Configuration:
+  - Architecture: GPT with 8 layers, 16 heads, d_model=512
+  - Training: 8 batch size, 3e-4 learning rate, 500 warmup steps
+  - Sparse attention: window_size=96, dilation=4
+  
+Expected Results:
+  - Training speedup: 5-10%
+  - Memory reduction: 4-5%
+  - Quality difference: <1% (negligible)
+  
+Expected Runtime:
+  - Per single run (both models): ~30 minutes
+  - Total for 10 runs: ~5 hours
+  - GPU Required: NVIDIA GPU with 8GB+ VRAM
+  - CPU: Not supported (would take 50+ hours)
+
+Statistical Validation:
+  - 10 runs provide high confidence (n=10)
+  - Randomized order prevents bias
+  - t-tests for significance (α=0.05)
+  - Cohen's d for effect size
+    
+WARNING: This experiment takes approximately 5 HOURS to complete!
+Each run takes ~30 minutes, and we perform 10 runs for statistical validity.
+
+Ready to start experiment? [y/N]: y
+
+Starting Runs...
+
+============================================================
+GPT MODEL COMPARISON - 10 RUNS
+Multiple runs with GPU cleanup and order randomization
+============================================================
+
+Loading training data...
+Loaded data shape: (510079, 257)
+Dataset size: 510079 sequences, seq_len=256
+Inferred vocab size: 10000
+Using device: cuda
+
+Model Configuration:
+  d_model: 512
+  n_heads: 16
+  layers: 8
+  batch_size: 8
+  learning_rate: 0.0003
+  warmup_steps: 500
+
+Window Model Parameters:
+  window_size: 96 (reduced for more sparsity)
+  dilation: 4
+
+Experimental Setup:
+  Number of runs: 10
+  Randomize order: True
+
+============================================================
+RUN 1 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 1)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:46<00:00, 67.38it/s, step=63760, loss=3.5083]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 946.27s (15.77 min)
+  Peak GPU memory: 1461.43 MB
+  Final loss: 3.5083
+  Avg loss (last 100): 3.3276
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 1)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:49<00:00, 71.66it/s, step=63760, loss=3.4491]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 889.78s (14.83 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.4491
+  Avg loss (last 100): 3.3698
+
+Saved window_model_weights.pt
+
+Cleaning up after Window training...
+
+Run 1 completed in 1846.67s (30.78 min)
+
+============================================================
+RUN 2 / 10
+Order: Window → Baseline
+
+Training WINDOW Model (Run 2)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:38<00:00, 72.56it/s, step=63760, loss=3.4994]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 878.73s (14.65 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.4994
+  Avg loss (last 100): 3.3757
+
+Cleaning up after Window training...
+
+Training BASELINE Model (Run 2)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:37<00:00, 67.99it/s, step=63760, loss=3.2204]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 937.72s (15.63 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.2204
+  Avg loss (last 100): 3.3363
+
+Cleaning up after Baseline training...
+
+Run 2 completed in 1826.21s (30.44 min)
+
+============================================================
+RUN 3 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 3)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:37<00:00, 67.99it/s, step=63760, loss=3.3603]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 937.85s (15.63 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.3603
+  Avg loss (last 100): 3.3107
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 3)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:40<00:00, 72.42it/s, step=63760, loss=3.3171]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 880.40s (14.67 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.3171
+  Avg loss (last 100): 3.3431
+
+Cleaning up after Window training...
+
+Run 3 completed in 1828.08s (30.47 min)
+
+============================================================
+RUN 4 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 4)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:36<00:00, 68.12it/s, step=63760, loss=3.5952]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 936.02s (15.60 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.5952
+  Avg loss (last 100): 3.3236
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 4)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.74it/s, step=63760, loss=3.2271]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.50s (14.61 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.2271
+  Avg loss (last 100): 3.3645
+
+Cleaning up after Window training...
+
+Run 4 completed in 1822.40s (30.37 min)
+
+============================================================
+RUN 5 / 10
+Order: Window → Baseline
+
+Training WINDOW Model (Run 5)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.75it/s, step=63760, loss=3.3788]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.41s (14.61 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.3788
+  Avg loss (last 100): 3.3209
+
+Cleaning up after Window training...
+
+Training BASELINE Model (Run 5)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:35<00:00, 68.16it/s, step=63760, loss=3.3049]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 935.45s (15.59 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.3049
+  Avg loss (last 100): 3.3363
+
+Cleaning up after Baseline training...
+
+Run 5 completed in 1821.76s (30.36 min)
+
+============================================================
+RUN 6 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 6)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:36<00:00, 68.11it/s, step=63760, loss=3.3917]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 936.17s (15.60 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.3917
+  Avg loss (last 100): 3.3524
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 6)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.75it/s, step=63760, loss=3.4776]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.46s (14.61 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.4776
+  Avg loss (last 100): 3.3273
+
+Cleaning up after Window training...
+
+Run 6 completed in 1822.58s (30.38 min)
+
+============================================================
+RUN 7 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 7)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:35<00:00, 68.13it/s, step=63760, loss=3.6300]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 935.85s (15.60 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.6300
+  Avg loss (last 100): 3.3297
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 7)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.75it/s, step=63760, loss=3.4925]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.44s (14.61 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.4925
+  Avg loss (last 100): 3.3459
+
+Cleaning up after Window training...
+
+Run 7 completed in 1822.26s (30.37 min)
+
+============================================================
+RUN 8 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 8)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:37<00:00, 68.03it/s, step=63760, loss=3.2345]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 937.21s (15.62 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.2345
+  Avg loss (last 100): 3.3243
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 8)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:40<00:00, 72.42it/s, step=63760, loss=3.5871]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 880.47s (14.67 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.5871
+  Avg loss (last 100): 3.3287
+
+Cleaning up after Window training...
+
+Run 8 completed in 1827.68s (30.46 min)
+
+============================================================
+RUN 9 / 10
+Order: Baseline → Window
+
+Training BASELINE Model (Run 9)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:36<00:00, 68.07it/s, step=63760, loss=3.3958]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 936.65s (15.61 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.3958
+  Avg loss (last 100): 3.3612
+
+Cleaning up after Baseline training...
+
+Training WINDOW Model (Run 9)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.76it/s, step=63760, loss=3.3452]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.25s (14.60 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.3452
+  Avg loss (last 100): 3.3390
+
+Cleaning up after Window training...
+
+Run 9 completed in 1822.91s (30.38 min)
+
+============================================================
+RUN 10 / 10
+Order: Window → Baseline
+
+Training WINDOW Model (Run 10)
+Performing aggressive GPU cleanup...
+Window model has 35,583,760 parameters.
+Warming up GPU for Window...
+Starting timed training for Window...
+Training Window: 100%|██████████| 63760/63760 [14:36<00:00, 72.77it/s, step=63760, loss=3.4384]
+
+Window Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 876.21s (14.60 min)
+  Peak GPU memory: 1398.49 MB
+  Final loss: 3.4384
+  Avg loss (last 100): 3.3645
+
+Cleaning up after Window training...
+
+Training BASELINE Model (Run 10)
+Performing aggressive GPU cleanup...
+Baseline model has 35,583,760 parameters.
+Warming up GPU for Baseline...
+Starting timed training for Baseline...
+Training Baseline: 100%|██████████| 63760/63760 [15:36<00:00, 68.10it/s, step=63760, loss=3.3103]
+
+Baseline Training Complete!
+  Total steps: 63760
+  Total tokens: 130,580,224
+  Training time: 936.23s (15.60 min)
+  Peak GPU memory: 1465.49 MB
+  Final loss: 3.3103
+  Avg loss (last 100): 3.3161
+
+Cleaning up after Baseline training...
+
+Run 10 completed in 1822.44s (30.37 min)
+
+Timing Summary:
+
+  Total experiment time: 18263.15s (304.39 min)
+  Average time per run: 1826.30s (30.44 min)
+  Run time range: 1821.76s - 1846.67s
+
+Aggregated Results:
+
+Metric                         Baseline                  Window                    Improvement         
+---------------------------------------------------------------------------------------------------------
+Training Time (s)               937.54 ± 3.01             878.77 ± 4.02                          +6.27%
+Peak GPU Memory (MB)           1465.09 ± 1.22            1398.49 ± 0.00                          +4.55%
+Avg Loss (last 100)             3.3318 ± 0.0147           3.3479 ± 0.0185                        +0.48%
+
+Statistical Significance:
+
+Training Time Difference:
+  t-statistic: 35.1493
+  p-value: < 0.0001 (extremely significant)
+  ✓ Statistically significant at p < 0.05
+  Cohen's d (effect size): 16.5695
+
+Conclusion:
+
+With 10 run(s) and randomized order:
+  • Training speed improvement: +6.27%
+  • Memory usage improvement: +4.55%
+  • Quality difference: +0.48%
+
+ SUCCESS: Window model is faster with comparable quality!
+
+Saved improved_comparison_results.txt
+
+✓ Saved metrics to output/experiment_results.npz
+  - 10 baseline runs
+  - 10 window runs
+  - Human-readable version: output/experiment_results.json
+
+CREATING 10 HIGH-QUALITY PLOTS (10 runs)
+
+1. Training loss curves with mean...
+  Saved plots/1_training_curves.png
+2. Final 100 losses comparison...
+  Saved plots/2_final_losses.png
+3. Metrics bar charts...
+  Saved plots/3_metrics_comparison.png
+4. Speed-quality tradeoff...
+  Saved plots/4_speedup_quality.png
+5. Memory-quality tradeoff...
+  Saved plots/5_memory_quality.png
+6. Memory-speed tradeoff...
+  Saved plots/6_memory_speed.png
+7. Statistical distributions...
+  Saved plots/7_distributions.png
+8. Per-run breakdown...
+  Saved plots/8_per_run.png
+9. Improvement summary...
+  Saved plots/9_summary.png
+10. Loss convergence with confidence bands...
+  Saved plots/10_convergence.png
+
+Runs completed successfully!
+
+
+Generated outputs:
+  ✓ output/experiment_results.npz - Saved metrics
+  ✓ output/experiment_results.json - Human-readable metrics
+  ✓ plots/ - 10 visualization plots
+  ✓ output/improved_comparison_results.txt - Text summary
+
+Next steps:
+  1. Check plots/ directory for visualizations
+  2. Review output/improved_comparison_results.txt for summary
+  3. Use create_model_plots.py to regenerate plots anytime
+
+
+Process finished with exit code 0
