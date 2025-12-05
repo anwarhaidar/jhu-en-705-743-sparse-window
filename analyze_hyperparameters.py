@@ -1,14 +1,17 @@
-"""
-Quick hyperparameter configuration tester.
-Helps you find the optimal window_size and dilation for your use case.
-"""
-
 import os
 import time
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 from gpt_win import GPTWindowModel
+
+
+# Define consistent colors for visualizations
+DARK_BLUE = '#1B4F72'
+LIGHT_BLUE = '#AED6F1'
+
 
 def analyze_sparsity_pattern(window_size, dilation, max_seq_len=256):
     """Analyze the sparsity pattern of a configuration."""
@@ -33,6 +36,19 @@ def analyze_sparsity_pattern(window_size, dilation, max_seq_len=256):
     # Estimate speedup (rough heuristic)
     estimated_speedup = sparsity * 0.15  # 15% of sparsity translates to speedup
 
+    # Create separate masks for dense (window) and sparse (dilated) regions
+    dense_mask = np.zeros((max_seq_len, max_seq_len))
+    sparse_mask = np.zeros((max_seq_len, max_seq_len))
+    
+    mask_np = mask.cpu().numpy()
+    for q in range(max_seq_len):
+        for k in range(q + 1):  # Causal: k <= q
+            if mask_np[q, k] > 0:
+                if q - k < window_size:  # Within local window
+                    dense_mask[q, k] = 1
+                else:  # Dilated attention
+                    sparse_mask[q, k] = 1
+
     return {
         'window_size': window_size,
         'dilation': dilation,
@@ -41,8 +57,61 @@ def analyze_sparsity_pattern(window_size, dilation, max_seq_len=256):
         'density': density,
         'sparsity': sparsity,
         'estimated_speedup': estimated_speedup,
-        'mask': mask
+        'mask': mask,
+        'dense_mask': dense_mask,
+        'sparse_mask': sparse_mask
     }
+
+
+def plot_attention_pattern(ax, stats, seq_len, show_colorbar=True):
+    """
+    Plot attention pattern with dense (solid) and sparse (hatched) regions.
+    
+    Args:
+        ax: Matplotlib axis
+        stats: Dictionary from analyze_sparsity_pattern
+        seq_len: Sequence length to display
+        show_colorbar: Whether to show colorbar
+    """
+    dense_mask = stats['dense_mask'][:seq_len, :seq_len]
+    sparse_mask = stats['sparse_mask'][:seq_len, :seq_len]
+    
+    # Plot dense region (solid dark blue)
+    dense_masked = np.ma.masked_where(dense_mask == 0, dense_mask)
+    ax.imshow(dense_masked, cmap=plt.cm.colors.ListedColormap([DARK_BLUE]),
+              aspect='equal', origin='upper', vmin=0, vmax=1)
+    
+    # Plot sparse region (light blue with hatching)
+    sparse_masked = np.ma.masked_where(sparse_mask == 0, sparse_mask)
+    ax.imshow(sparse_masked, cmap=plt.cm.colors.ListedColormap([LIGHT_BLUE]),
+              aspect='equal', origin='upper', vmin=0, vmax=1)
+    
+    # Add hatching overlay for sparse region
+    ax.contourf(np.arange(seq_len), np.arange(seq_len), sparse_mask,
+               levels=[0.5, 1.5], colors='none', hatches=['////'])
+    
+    # Set axis properties
+    ax.set_xlim(-0.5, seq_len - 0.5)
+    ax.set_ylim(seq_len - 0.5, -0.5)
+    
+    # Set tick positions based on sequence length
+    if seq_len <= 128:
+        tick_positions = [0, 20, 40, 60, 80, 100, 120]
+    else:
+        tick_positions = [0, 50, 100, 150, 200, 250]
+    tick_positions = [t for t in tick_positions if t < seq_len]
+    ax.set_xticks(tick_positions)
+    ax.set_yticks(tick_positions)
+    
+    # Add colorbar if requested
+    if show_colorbar:
+        cmap = LinearSegmentedColormap.from_list('att', 
+            [(0, 'white'), (0.5, LIGHT_BLUE), (1, DARK_BLUE)])
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(0, 1))
+        cbar = plt.colorbar(sm, ax=ax, shrink=0.8)
+        cbar.set_ticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    
+    return ax
 
 
 def compare_configurations(seq_len=256):
@@ -110,7 +179,7 @@ def compare_configurations(seq_len=256):
     # Visualize attention patterns
     print("\nGenerating comparison visualization...")
 
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    fig, axes = plt.subplots(2, 4, figsize=(18, 9))
     axes = axes.flatten()
 
     for idx, (description, stats) in enumerate(results):
@@ -118,18 +187,19 @@ def compare_configurations(seq_len=256):
             break
 
         ax = axes[idx]
-        mask = stats['mask'][:min(128, seq_len), :min(128, seq_len)]  # Show up to 128x128
-
-        im = ax.imshow(mask.cpu().numpy(), cmap='Blues', interpolation='nearest', aspect='auto')
+        
+        # Plot with hatched sparse regions - show FULL sequence
+        plot_attention_pattern(ax, stats, seq_len, show_colorbar=True)
+        
         ax.set_title(f"{description}\nw={stats['window_size']}, d={stats['dilation']}\n"
                     f"Sparsity: {stats['sparsity']:.1f}%",
                     fontsize=10)
-        ax.set_xlabel('Key Position', fontsize=8)
-        ax.set_ylabel('Query Position', fontsize=8)
-        plt.colorbar(im, ax=ax, fraction=0.046)
+        ax.set_xlabel('Key Position', fontsize=10)
+        ax.set_ylabel('Query Position', fontsize=10)
 
     plt.tight_layout()
-    plt.savefig(os.path.join('plots','hyperparameter_comparison.png'), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join('plots','hyperparameter_comparison.png'), dpi=150, 
+                bbox_inches='tight', facecolor='white')
     print("Saved plots/hyperparameter_comparison.png")
 
     # Create sparsity vs speedup plot
@@ -241,37 +311,55 @@ def test_specific_config(window_size, dilation, seq_len=256):
         print(f"  * Conservative sparsity - quality should be preserved")
 
     # Visualize this specific config
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
-    # Full attention mask
+    # Full attention mask with hatching - show FULL sequence
     ax = axes[0]
-    display_size = min(128, seq_len)
-    mask = stats['mask'][:display_size, :display_size]
-    im = ax.imshow(mask.cpu().numpy(), cmap='Blues', interpolation='nearest')
+    plot_attention_pattern(ax, stats, seq_len, show_colorbar=True)
     ax.set_title(f'Attention Pattern\nw={window_size}, d={dilation}', fontweight='bold')
     ax.set_xlabel('Key Position')
     ax.set_ylabel('Query Position')
-    plt.colorbar(im, ax=ax)
 
     # Attention for a specific query position
     ax = axes[1]
-    query_pos = display_size // 2
+    query_pos = seq_len // 2
+    mask = stats['mask']
     attention = mask[query_pos, :].cpu().numpy()
-    ax.bar(range(len(attention)), attention, alpha=0.7, color='blue')
+    
+    # Color bars based on whether they're in window or dilated
+    colors = []
+    for k in range(len(attention)):
+        if attention[k] > 0:
+            if query_pos - k < window_size:
+                colors.append(DARK_BLUE)
+            else:
+                colors.append(LIGHT_BLUE)
+        else:
+            colors.append('lightgray')
+    
+    ax.bar(range(len(attention)), attention, alpha=0.7, color=colors)
     ax.set_title(f'Attention for Query Position {query_pos}', fontweight='bold')
     ax.set_xlabel('Key Position')
     ax.set_ylabel('Attention (1=attend, 0=masked)')
     ax.grid(True, alpha=0.3, axis='y')
 
-    # Highlight window
+    # Highlight window region
     window_start = max(0, query_pos - window_size + 1)
-    ax.axvspan(window_start, query_pos, alpha=0.2, color='green', label='Window')
-    ax.legend()
+    ax.axvspan(window_start, query_pos, alpha=0.15, color='green', label='Local Window')
+    
+    # Add legend for attention types
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=DARK_BLUE, label='Dense (local window)'),
+        Patch(facecolor=LIGHT_BLUE, label='Sparse (dilated)'),
+        Patch(facecolor='lightgray', label='Masked'),
+    ]
+    ax.legend(handles=legend_elements, loc='upper left')
 
     plt.tight_layout()
     output_file = f'config_w{window_size}_d{dilation}.png'
     output_file = os.path.join('plots', output_file)
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.savefig(output_file, dpi=150, bbox_inches='tight', facecolor='white')
     print(f"\nSaved {output_file}")
     plt.close('all')
 
